@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Job Application Tracker</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      width: 320px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      font-size: 14px;
+      color: #111827;
+      background: #fff;
+    }
+
+    header {
+      padding: 16px;
+      border-bottom: 1px solid #e5e7eb;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    header .logo {
+      width: 28px;
+      height: 28px;
+      background: #3b82f6;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    header h1 {
+      font-size: 14px;
+      font-weight: 600;
+      color: #111827;
+    }
+
+    header p {
+      font-size: 11px;
+      color: #6b7280;
+      margin-top: 1px;
+    }
+
+    .status-bar {
+      padding: 10px 16px;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .dot.green { background: #22c55e; }
+    .dot.red { background: #ef4444; }
+    .dot.gray { background: #9ca3af; }
+
+    .section { padding: 16px; border-bottom: 1px solid #f3f4f6; }
+    .section:last-child { border-bottom: none; }
+
+    label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 6px;
+    }
+
+    input[type="text"], input[type="url"] {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    input:focus { border-color: #3b82f6; }
+
+    .input-row {
+      display: flex;
+      gap: 6px;
+    }
+    .input-row input { flex: 1; min-width: 0; }
+
+    .hint {
+      font-size: 11px;
+      color: #9ca3af;
+      margin-top: 5px;
+    }
+
+    button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-family: inherit;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      transition: background 0.15s;
+    }
+
+    .btn-primary {
+      background: #3b82f6;
+      color: #fff;
+      width: 100%;
+    }
+    .btn-primary:hover { background: #2563eb; }
+    .btn-primary:disabled { background: #93c5fd; cursor: default; }
+
+    .btn-outline {
+      background: #fff;
+      color: #374151;
+      border: 1px solid #d1d5db;
+    }
+    .btn-outline:hover { background: #f9fafb; }
+
+    .btn-danger {
+      background: #fff;
+      color: #ef4444;
+      border: 1px solid #fca5a5;
+      font-size: 12px;
+      padding: 6px 10px;
+    }
+    .btn-danger:hover { background: #fef2f2; }
+
+    .actions-row {
+      display: flex;
+      gap: 6px;
+      margin-top: 10px;
+    }
+    .actions-row button { flex: 1; }
+
+    .recent-list { list-style: none; }
+    .recent-list li {
+      padding: 8px 0;
+      border-bottom: 1px solid #f3f4f6;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .recent-list li:last-child { border-bottom: none; }
+    .recent-list .company { font-weight: 600; font-size: 12px; }
+    .recent-list .title { font-size: 11px; color: #6b7280; }
+    .recent-list .meta { font-size: 10px; color: #9ca3af; }
+
+    .empty { text-align: center; padding: 12px 0; color: #9ca3af; font-size: 12px; }
+
+    .track-section { background: #f0f9ff; border-bottom: 1px solid #bae6fd; }
+    .track-section label { color: #0369a1; }
+
+    .track-form { margin-top: 10px; display: none; flex-direction: column; gap: 8px; }
+    .track-form.open { display: flex; }
+
+    .track-url {
+      font-size: 11px;
+      color: #6b7280;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 4px;
+      padding: 5px 8px;
+      word-break: break-all;
+      line-height: 1.4;
+    }
+
+    .track-btns { display: flex; gap: 6px; }
+    .btn-applied {
+      flex: 1;
+      background: #3b82f6;
+      color: #fff;
+      border: none;
+    }
+    .btn-applied:hover { background: #2563eb; }
+    .btn-applied:disabled { background: #93c5fd; cursor: default; }
+
+    .btn-bookmark {
+      flex: 1;
+      background: #fff;
+      color: #d97706;
+      border: 1px solid #fcd34d;
+    }
+    .btn-bookmark:hover { background: #fffbeb; }
+    .btn-bookmark:disabled { opacity: 0.6; cursor: default; }
+
+    .toast {
+      position: fixed;
+      bottom: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #111827;
+      color: #fff;
+      padding: 8px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s;
+      z-index: 100;
+    }
+    .toast.show { opacity: 1; }
+    .toast.error { background: #ef4444; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">📋</div>
+    <div>
+      <h1>Job Application Tracker</h1>
+      <p>Auto-track applications across all platforms</p>
+    </div>
+  </header>
+
+  <div id="status-bar" class="status-bar">
+    <span class="dot gray" id="status-dot"></span>
+    <span id="status-text">Checking connection…</span>
+  </div>
+
+  <div class="section track-section" id="track-section">
+    <label>Track this page</label>
+    <button class="btn-outline" id="track-toggle-btn" style="width:100%;margin-top:4px;">📌 Save current page as job</button>
+
+    <div class="track-form" id="track-form">
+      <div class="track-url" id="track-url">Loading…</div>
+      <div>
+        <label>Company</label>
+        <input type="text" id="track-company" placeholder="Company name" />
+      </div>
+      <div>
+        <label>Job title</label>
+        <input type="text" id="track-title" placeholder="Role / job title" />
+      </div>
+      <div class="track-btns">
+        <button class="btn-applied" id="track-apply-btn">✓ Track as Applied</button>
+        <button class="btn-bookmark" id="track-bookmark-btn">🔖 Bookmark</button>
+      </div>
+      <button class="btn-outline" id="track-cancel-btn" style="font-size:12px;padding:5px;">Cancel</button>
+    </div>
+  </div>
+
+  <div class="section" id="setup-section">
+    <label>Extension Token</label>
+    <div class="input-row">
+      <input type="text" id="token-input" placeholder="Paste token from dashboard…" />
+    </div>
+    <p class="hint">Copy from your dashboard → Extension token card</p>
+
+    <label style="margin-top:12px;">Dashboard URL</label>
+    <input type="url" id="url-input" placeholder="https://your-app.vercel.app" />
+    <p class="hint">Leave blank to use default</p>
+
+    <div class="actions-row">
+      <button class="btn-primary" id="save-btn">Save & Connect</button>
+      <button class="btn-danger" id="clear-btn">Clear</button>
+    </div>
+  </div>
+
+  <div class="section" id="recent-section">
+    <label>Recently tracked</label>
+    <ul class="recent-list" id="recent-list">
+      <li class="empty">No applications tracked yet</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <button class="btn-outline" id="open-dashboard-btn" style="width:100%;">Open Dashboard ↗</button>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script type="module" src="./index.ts"></script>
+</body>
+</html>

@@ -1,0 +1,37 @@
+# Environment — NEVER commit these
+.env
+.env.local
+.env.*.local
+*.env
+
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Next.js
+job-tracker-web/.next/
+job-tracker-web/out/
+
+# Extension build output
+job-tracker-extension/dist/
+
+# Vercel
+.vercel
+
+# Testing
+coverage/
+
+# Claude Code local settings
+.claude/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# TypeScript
+*.tsbuildinfo
