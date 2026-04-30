@@ -19,7 +19,9 @@
     "https://*.ashbyhq.com/*",
     "https://*.rippling.com/*",
     "https://*.jobvite.com/*",
-    "https://*.taleo.net/*"
+    "https://*.taleo.net/*",
+    "https://*.vercel.app/*",
+    "http://localhost/*"
   ],
   "background": {
     "service_worker": "src/background/service-worker.ts",
