@@ -1,6 +1,6 @@
 import { StoredAuth, MessageType, DetectedJob } from '../types'
 
-const DEFAULT_API_URL = 'https://your-app.vercel.app'
+const DEFAULT_API_URL = 'https://job-application-tracker-git-main-sohanrajr-7379s-projects.vercel.app'
 const RECENT_KEY = 'recent_jobs'
 const MAX_RECENT = 5
 
