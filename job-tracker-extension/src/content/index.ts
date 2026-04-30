@@ -5,30 +5,37 @@ import { isLever, scrapeLever, detectLeverSubmit } from './platforms/lever'
 import { isWorkday, scrapeWorkday, detectWorkdaySubmit } from './platforms/workday'
 
 function getPlatformHandlers(): {
-  is: () => boolean
+  platform: string
   scrape: () => Partial<DetectedJob> | null
   detect: (cb: () => void) => void
 } | null {
-  if (isLinkedIn()) return { is: isLinkedIn, scrape: scrapeLinkedIn, detect: detectLinkedInSubmit }
-  if (isGreenhouse()) return { is: isGreenhouse, scrape: scrapeGreenhouse, detect: detectGreenhouseSubmit }
-  if (isLever()) return { is: isLever, scrape: scrapeLever, detect: detectLeverSubmit }
-  if (isWorkday()) return { is: isWorkday, scrape: scrapeWorkday, detect: detectWorkdaySubmit }
+  if (isLinkedIn()) return { platform: 'linkedin', scrape: scrapeLinkedIn, detect: detectLinkedInSubmit }
+  if (isGreenhouse()) return { platform: 'greenhouse', scrape: scrapeGreenhouse, detect: detectGreenhouseSubmit }
+  if (isLever()) return { platform: 'lever', scrape: scrapeLever, detect: detectLeverSubmit }
+  if (isWorkday()) return { platform: 'workday', scrape: scrapeWorkday, detect: detectWorkdaySubmit }
   return null
 }
 
 function init() {
-  const platform = getPlatformHandlers()
-  if (!platform) return
+  const handler = getPlatformHandlers()
+  if (!handler) return
 
-  platform.detect(() => {
-    const scraped = platform.scrape()
+  // Tell service worker to show green badge on this tab
+  const detectMsg: MessageType = { type: 'PLATFORM_DETECTED', payload: { platform: handler.platform } }
+  chrome.runtime.sendMessage(detectMsg)
+
+  // Show subtle in-page indicator
+  showPageBanner(handler.platform)
+
+  handler.detect(() => {
+    const scraped = handler.scrape()
     if (!scraped?.company || !scraped?.title) return
 
     const job: DetectedJob = {
       company: scraped.company,
       title: scraped.title,
       url: location.href,
-      platform: scraped.platform ?? 'unknown',
+      platform: scraped.platform ?? handler.platform,
       applied_at: new Date().toISOString(),
     }
 
@@ -36,15 +43,40 @@ function init() {
     chrome.runtime.sendMessage(msg, (response: { ok: boolean; error?: string }) => {
       if (chrome.runtime.lastError) return
       if (response?.ok) {
-        showToast(`✓ Saved to Job Tracker — ${job.company}`)
+        showPageToast(`✓ Saved — ${job.company}`)
       } else if (response?.error) {
-        showToast(`⚠ Job Tracker: ${response.error}`, true)
+        showPageToast(`⚠ Job Tracker: ${response.error}`, true)
       }
     })
   })
 }
 
-function showToast(text: string, isError = false) {
+function showPageBanner(platform: string) {
+  const el = document.createElement('div')
+  el.textContent = `🎯 Job Tracker active on ${platform}`
+  Object.assign(el.style, {
+    position: 'fixed',
+    bottom: '24px',
+    right: '24px',
+    zIndex: '2147483647',
+    background: '#1e293b',
+    color: '#94a3b8',
+    padding: '8px 14px',
+    borderRadius: '8px',
+    fontSize: '12px',
+    fontFamily: 'system-ui, sans-serif',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+    opacity: '1',
+    transition: 'opacity 0.4s',
+    pointerEvents: 'none',
+  })
+  document.body.appendChild(el)
+  // Fade out after 4s
+  setTimeout(() => { el.style.opacity = '0' }, 4000)
+  setTimeout(() => el.remove(), 4400)
+}
+
+function showPageToast(text: string, isError = false) {
   const el = document.createElement('div')
   el.textContent = text
   Object.assign(el.style, {

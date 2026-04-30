@@ -10,11 +10,11 @@ export interface DetectedJob {
 
 export interface StoredAuth {
   extension_token: string
-  api_base_url: string
 }
 
 export type MessageType =
   | { type: 'JOB_DETECTED'; payload: DetectedJob }
+  | { type: 'PLATFORM_DETECTED'; payload: { platform: string } }
   | { type: 'GET_AUTH' }
   | { type: 'SET_AUTH'; payload: StoredAuth }
   | { type: 'SYNC_JOB'; payload: DetectedJob }

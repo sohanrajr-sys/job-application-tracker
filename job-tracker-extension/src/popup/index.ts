@@ -1,23 +1,20 @@
 import { StoredAuth, MessageType, DetectedJob } from '../types'
 
-const DEFAULT_URL = 'https://job-application-tracker-git-main-sohanrajr-7379s-projects.vercel.app'
+const API_URL = 'https://job-application-tracker-git-main-sohanrajr-7379s-projects.vercel.app'
 const RECENT_KEY = 'recent_jobs'
 const MAX_RECENT = 5
 
-// DOM refs
 const statusDot = document.getElementById('status-dot') as HTMLSpanElement
 const statusText = document.getElementById('status-text') as HTMLSpanElement
 const setupSection = document.getElementById('setup-section') as HTMLDivElement
 const setupToggle = document.getElementById('setup-toggle') as HTMLButtonElement
 const tokenInput = document.getElementById('token-input') as HTMLInputElement
-const urlInput = document.getElementById('url-input') as HTMLInputElement
 const saveBtn = document.getElementById('save-btn') as HTMLButtonElement
 const clearBtn = document.getElementById('clear-btn') as HTMLButtonElement
 const openDashboardBtn = document.getElementById('open-dashboard-btn') as HTMLButtonElement
 const recentList = document.getElementById('recent-list') as HTMLUListElement
 const toast = document.getElementById('toast') as HTMLDivElement
 
-// Track-this-page DOM refs
 const trackToggleBtn = document.getElementById('track-toggle-btn') as HTMLButtonElement
 const trackForm = document.getElementById('track-form') as HTMLDivElement
 const trackUrl = document.getElementById('track-url') as HTMLDivElement
@@ -37,18 +34,15 @@ function showToast(msg: string, isError = false) {
 }
 
 function setStatus(connected: boolean, message?: string) {
-  if (connected) {
-    statusDot.className = 'dot green'
-    statusText.textContent = message ?? 'Connected'
-  } else {
-    statusDot.className = 'dot red'
-    statusText.textContent = message ?? 'Not connected — paste your token below'
-  }
+  statusDot.className = connected ? 'dot green' : 'dot red'
+  statusText.textContent = connected
+    ? (message ?? 'Connected')
+    : (message ?? 'Not connected — paste your token below')
 }
 
 function collapseSetup() {
   setupSection.classList.add('collapsed')
-  setupToggle.textContent = '⚙ Edit token / URL'
+  setupToggle.textContent = '⚙ Edit token'
 }
 
 function expandSetup() {
@@ -56,33 +50,25 @@ function expandSetup() {
   setupToggle.textContent = '▲ Close'
 }
 
-async function loadAuth(): Promise<StoredAuth> {
+async function loadToken(): Promise<string> {
   return new Promise((resolve) => {
-    chrome.storage.local.get(['extension_token', 'api_base_url'], (r) => {
-      resolve({
-        extension_token: r.extension_token ?? '',
-        api_base_url: r.api_base_url ?? '',
-      })
+    chrome.storage.local.get(['extension_token'], (r) => {
+      resolve(r.extension_token ?? '')
     })
   })
 }
 
-async function checkConnection(auth: StoredAuth): Promise<boolean> {
-  if (!auth.extension_token) return false
-  const base = auth.api_base_url || DEFAULT_URL
+async function checkConnection(token: string): Promise<boolean> {
+  if (!token) return false
   try {
-    const res = await fetch(`${base}/api/extension/sync`, { method: 'OPTIONS' })
+    const res = await fetch(`${API_URL}/api/extension/sync`, { method: 'OPTIONS' })
     return res.ok || res.status === 204 || res.status === 200
-  } catch {
-    return false
-  }
+  } catch { return false }
 }
 
 async function loadRecent(): Promise<DetectedJob[]> {
   return new Promise((resolve) => {
-    chrome.storage.local.get([RECENT_KEY], (r) => {
-      resolve(r[RECENT_KEY] ?? [])
-    })
+    chrome.storage.local.get([RECENT_KEY], (r) => resolve(r[RECENT_KEY] ?? []))
   })
 }
 
@@ -91,16 +77,13 @@ function renderRecent(jobs: DetectedJob[]) {
     recentList.innerHTML = '<li class="empty">No applications tracked yet</li>'
     return
   }
-  recentList.innerHTML = jobs
-    .slice(0, MAX_RECENT)
-    .map((j) => `
-      <li>
-        <span class="company">${esc(j.company)}</span>
-        <span class="title">${esc(j.title)}</span>
-        <span class="meta">${esc(j.platform)} · ${formatDate(j.applied_at)}</span>
-      </li>
-    `)
-    .join('')
+  recentList.innerHTML = jobs.slice(0, MAX_RECENT).map((j) => `
+    <li>
+      <span class="company">${esc(j.company)}</span>
+      <span class="title">${esc(j.title)}</span>
+      <span class="meta">${esc(j.platform)} · ${formatDate(j.applied_at)}</span>
+    </li>
+  `).join('')
 }
 
 function esc(s: string): string {
@@ -116,74 +99,58 @@ function formatDate(iso: string): string {
 }
 
 async function init() {
-  const auth = await loadAuth()
+  // Clear old api_base_url from storage (no longer used)
+  chrome.storage.local.remove(['api_base_url'])
 
-  if (auth.extension_token) {
-    tokenInput.value = auth.extension_token
+  const token = await loadToken()
+
+  if (token) {
+    tokenInput.value = token
     setStatus(false, 'Verifying connection…')
-    const ok = await checkConnection(auth)
-    if (ok) {
-      setStatus(true)
-      collapseSetup()
-    } else {
-      setStatus(false, 'Cannot reach dashboard — check URL')
-      expandSetup()
-    }
+    const ok = await checkConnection(token)
+    if (ok) { setStatus(true); collapseSetup() }
+    else { setStatus(false, 'Cannot reach dashboard — check token'); expandSetup() }
   } else {
     setStatus(false)
     expandSetup()
   }
-
-  if (auth.api_base_url) urlInput.value = auth.api_base_url
 
   setupToggle.addEventListener('click', () => {
     if (setupSection.classList.contains('collapsed')) expandSetup()
     else collapseSetup()
   })
 
-  openDashboardBtn.addEventListener('click', async () => {
-    const a = await loadAuth()
-    const base = a.api_base_url || DEFAULT_URL
-    chrome.tabs.create({ url: `${base}/dashboard` })
+  openDashboardBtn.addEventListener('click', () => {
+    chrome.tabs.create({ url: `${API_URL}/dashboard` })
   })
 
-  const recent = await loadRecent()
-  renderRecent(recent)
+  renderRecent(await loadRecent())
 
   saveBtn.addEventListener('click', async () => {
-    const token = tokenInput.value.trim()
-    const apiUrl = urlInput.value.trim().replace(/\/$/, '')
-
-    if (!token) { showToast('Token is required', true); return }
+    const t = tokenInput.value.trim()
+    if (!t) { showToast('Token is required', true); return }
 
     const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-    if (!uuidRe.test(token)) { showToast('Invalid token format', true); return }
+    if (!uuidRe.test(t)) { showToast('Invalid token format', true); return }
 
     saveBtn.disabled = true
     saveBtn.textContent = 'Saving…'
 
-    const payload: StoredAuth = { extension_token: token, api_base_url: apiUrl }
+    const payload: StoredAuth = { extension_token: t }
     const msg: MessageType = { type: 'SET_AUTH', payload }
 
     chrome.runtime.sendMessage(msg, async () => {
-      const ok = await checkConnection(payload)
-      if (ok) {
-        setStatus(true)
-        showToast('Connected!')
-        collapseSetup()
-      } else {
-        setStatus(false, 'Saved — but cannot reach dashboard')
-        showToast('Token saved. Check your dashboard URL.', true)
-      }
+      const ok = await checkConnection(t)
+      if (ok) { setStatus(true); showToast('Connected!'); collapseSetup() }
+      else { setStatus(false, 'Saved — check your token'); showToast('Cannot reach API', true) }
       saveBtn.disabled = false
       saveBtn.textContent = 'Save & Connect'
     })
   })
 
   clearBtn.addEventListener('click', () => {
-    chrome.storage.local.remove(['extension_token', 'api_base_url'], () => {
+    chrome.storage.local.remove(['extension_token'], () => {
       tokenInput.value = ''
-      urlInput.value = ''
       setStatus(false)
       expandSetup()
       showToast('Cleared')
@@ -194,10 +161,7 @@ async function init() {
   let currentTab: chrome.tabs.Tab | null = null
 
   trackToggleBtn.addEventListener('click', async () => {
-    if (trackForm.classList.contains('open')) {
-      trackForm.classList.remove('open')
-      return
-    }
+    if (trackForm.classList.contains('open')) { trackForm.classList.remove('open'); return }
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
     currentTab = tab ?? null
     trackUrl.textContent = tab?.url || '(no URL)'
@@ -215,22 +179,19 @@ async function init() {
     if (!company) { showToast('Company name required', true); return }
     if (!title) { showToast('Job title required', true); return }
 
-    // Always read fresh from storage — avoids stale closure bug
-    const freshAuth = await loadAuth()
-    if (!freshAuth.extension_token) {
-      showToast('Paste your token in the setup section first', true)
+    const freshToken = await loadToken()
+    if (!freshToken) {
+      showToast('Paste your token first', true)
       expandSetup()
       return
     }
 
     const job: DetectedJob = {
-      company,
-      title,
+      company, title,
       url: currentTab?.url ?? '',
       platform: guessPlatform(currentTab?.url ?? ''),
       applied_at: new Date().toISOString(),
-      status,
-      bookmarked,
+      status, bookmarked,
     }
 
     trackApplyBtn.disabled = true
