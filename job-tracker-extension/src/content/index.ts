@@ -16,7 +16,15 @@ function getPlatformHandlers(): {
   return null
 }
 
+const APP_HOSTNAMES = ['application-tracker.vercel.app', 'localhost']
+
 function init() {
+  // Signal extension presence to our web app (used on the /setup page)
+  if (APP_HOSTNAMES.some(h => location.hostname === h || location.hostname.endsWith('.' + h))) {
+    window.dispatchEvent(new CustomEvent('job-tracker-installed'))
+    return
+  }
+
   const handler = getPlatformHandlers()
   if (!handler) return
 

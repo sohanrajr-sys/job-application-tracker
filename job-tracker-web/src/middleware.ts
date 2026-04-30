@@ -26,7 +26,8 @@ export async function middleware(request: NextRequest) {
 
   const isAuthRoute = pathname.startsWith('/login') || pathname.startsWith('/signup')
   const isAppRoute = pathname.startsWith('/dashboard') || pathname.startsWith('/applications') ||
-    pathname.startsWith('/bookmarks') || pathname.startsWith('/reminders')
+    pathname.startsWith('/bookmarks') || pathname.startsWith('/reminders') ||
+    pathname.startsWith('/setup')
   const isAdminRoute = pathname.startsWith('/admin')
   const isApiRoute = pathname.startsWith('/api')
 

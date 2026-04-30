@@ -10,9 +10,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role')
+    .select('role, onboarding_done')
     .eq('id', user.id)
     .single()
+
+  // First-time users go through extension setup before anything else
+  if (!profile?.onboarding_done) redirect('/setup')
 
   return (
     <div className="flex min-h-screen bg-gray-50">
