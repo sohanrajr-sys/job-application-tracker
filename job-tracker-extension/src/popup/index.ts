@@ -7,6 +7,8 @@ const MAX_RECENT = 5
 // DOM refs
 const statusDot = document.getElementById('status-dot') as HTMLSpanElement
 const statusText = document.getElementById('status-text') as HTMLSpanElement
+const setupSection = document.getElementById('setup-section') as HTMLDivElement
+const setupToggle = document.getElementById('setup-toggle') as HTMLButtonElement
 const tokenInput = document.getElementById('token-input') as HTMLInputElement
 const urlInput = document.getElementById('url-input') as HTMLInputElement
 const saveBtn = document.getElementById('save-btn') as HTMLButtonElement
@@ -44,6 +46,16 @@ function setStatus(connected: boolean, message?: string) {
   }
 }
 
+function collapseSetup() {
+  setupSection.classList.add('collapsed')
+  setupToggle.textContent = '⚙ Edit token / URL'
+}
+
+function expandSetup() {
+  setupSection.classList.remove('collapsed')
+  setupToggle.textContent = '▲ Close'
+}
+
 async function loadAuth(): Promise<StoredAuth> {
   return new Promise((resolve) => {
     chrome.storage.local.get(['extension_token', 'api_base_url'], (r) => {
@@ -59,9 +71,7 @@ async function checkConnection(auth: StoredAuth): Promise<boolean> {
   if (!auth.extension_token) return false
   const base = auth.api_base_url || DEFAULT_URL
   try {
-    const res = await fetch(`${base}/api/extension/sync`, {
-      method: 'OPTIONS',
-    })
+    const res = await fetch(`${base}/api/extension/sync`, { method: 'OPTIONS' })
     return res.ok || res.status === 204 || res.status === 200
   } catch {
     return false
@@ -102,9 +112,7 @@ function esc(s: string): string {
 function formatDate(iso: string): string {
   try {
     return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
-  } catch {
-    return iso
-  }
+  } catch { return iso }
 }
 
 async function init() {
@@ -116,20 +124,26 @@ async function init() {
     const ok = await checkConnection(auth)
     if (ok) {
       setStatus(true)
+      collapseSetup()
     } else {
       setStatus(false, 'Cannot reach dashboard — check URL')
+      expandSetup()
     }
   } else {
     setStatus(false)
+    expandSetup()
   }
 
-  if (auth.api_base_url) {
-    urlInput.value = auth.api_base_url
-  }
+  if (auth.api_base_url) urlInput.value = auth.api_base_url
 
-  openDashboardBtn.textContent = `Open Dashboard ↗`
-  openDashboardBtn.addEventListener('click', () => {
-    const base = auth.api_base_url || DEFAULT_URL
+  setupToggle.addEventListener('click', () => {
+    if (setupSection.classList.contains('collapsed')) expandSetup()
+    else collapseSetup()
+  })
+
+  openDashboardBtn.addEventListener('click', async () => {
+    const a = await loadAuth()
+    const base = a.api_base_url || DEFAULT_URL
     chrome.tabs.create({ url: `${base}/dashboard` })
   })
 
@@ -140,32 +154,23 @@ async function init() {
     const token = tokenInput.value.trim()
     const apiUrl = urlInput.value.trim().replace(/\/$/, '')
 
-    if (!token) {
-      showToast('Token is required', true)
-      return
-    }
+    if (!token) { showToast('Token is required', true); return }
 
     const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-    if (!uuidRe.test(token)) {
-      showToast('Invalid token format', true)
-      return
-    }
+    if (!uuidRe.test(token)) { showToast('Invalid token format', true); return }
 
     saveBtn.disabled = true
     saveBtn.textContent = 'Saving…'
 
-    const payload: StoredAuth = {
-      extension_token: token,
-      api_base_url: apiUrl,
-    }
-
+    const payload: StoredAuth = { extension_token: token, api_base_url: apiUrl }
     const msg: MessageType = { type: 'SET_AUTH', payload }
+
     chrome.runtime.sendMessage(msg, async () => {
       const ok = await checkConnection(payload)
       if (ok) {
         setStatus(true)
         showToast('Connected!')
-        openDashboardBtn.setAttribute('data-url', apiUrl || DEFAULT_URL)
+        collapseSetup()
       } else {
         setStatus(false, 'Saved — but cannot reach dashboard')
         showToast('Token saved. Check your dashboard URL.', true)
@@ -180,11 +185,12 @@ async function init() {
       tokenInput.value = ''
       urlInput.value = ''
       setStatus(false)
+      expandSetup()
       showToast('Cleared')
     })
   })
 
-  // ── Track this page ──────────────────────────────────────────────
+  // ── Track this page ─────────────────────────────────────────────
   let currentTab: chrome.tabs.Tab | null = null
 
   trackToggleBtn.addEventListener('click', async () => {
@@ -192,30 +198,30 @@ async function init() {
       trackForm.classList.remove('open')
       return
     }
-
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
     currentTab = tab ?? null
-
-    const pageUrl = tab?.url ?? ''
-    const pageTitle = tab?.title ?? ''
-
-    trackUrl.textContent = pageUrl || '(no URL)'
-    trackTitle.value = guessTitle(pageTitle)
+    trackUrl.textContent = tab?.url || '(no URL)'
+    trackTitle.value = guessTitle(tab?.title ?? '')
     trackCompany.value = ''
     trackForm.classList.add('open')
     trackCompany.focus()
   })
 
-  trackCancelBtn.addEventListener('click', () => {
-    trackForm.classList.remove('open')
-  })
+  trackCancelBtn.addEventListener('click', () => trackForm.classList.remove('open'))
 
   async function submitTrack(status: 'applied' | 'saved', bookmarked: boolean) {
     const company = trackCompany.value.trim()
     const title = trackTitle.value.trim()
     if (!company) { showToast('Company name required', true); return }
     if (!title) { showToast('Job title required', true); return }
-    if (!auth.extension_token) { showToast('Not connected — save your token first', true); return }
+
+    // Always read fresh from storage — avoids stale closure bug
+    const freshAuth = await loadAuth()
+    if (!freshAuth.extension_token) {
+      showToast('Paste your token in the setup section first', true)
+      expandSetup()
+      return
+    }
 
     const job: DetectedJob = {
       company,
@@ -248,7 +254,6 @@ async function init() {
 }
 
 function guessTitle(pageTitle: string): string {
-  // Strip common suffixes like "| LinkedIn", "- Indeed Jobs", etc.
   return pageTitle
     .replace(/\s*[|\-–—]\s*(LinkedIn|Indeed|Glassdoor|Wellfound|Handshake|ZipRecruiter|Monster|Dice|Google Jobs|Greenhouse|Lever|Workday|SmartRecruiters|Ashby|Rippling|Jobvite|Taleo|iCIMS).*$/i, '')
     .trim()
@@ -277,11 +282,8 @@ function guessPlatform(url: string): string {
   return 'other'
 }
 
-// Re-render recent list if storage changes while popup is open
 chrome.storage.onChanged.addListener((changes) => {
-  if (changes[RECENT_KEY]) {
-    renderRecent(changes[RECENT_KEY].newValue ?? [])
-  }
+  if (changes[RECENT_KEY]) renderRecent(changes[RECENT_KEY].newValue ?? [])
 })
 
 init()

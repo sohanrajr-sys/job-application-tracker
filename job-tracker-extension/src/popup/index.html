@@ -164,6 +164,19 @@
 
     .empty { text-align: center; padding: 12px 0; color: #9ca3af; font-size: 12px; }
 
+    #setup-section.collapsed .setup-fields { display: none; }
+    #setup-toggle {
+      width: 100%;
+      background: none;
+      border: none;
+      font-size: 11px;
+      color: #6b7280;
+      padding: 4px 0 0;
+      cursor: pointer;
+      text-align: left;
+    }
+    #setup-toggle:hover { color: #374151; }
+
     .track-section { background: #f0f9ff; border-bottom: 1px solid #bae6fd; }
     .track-section label { color: #0369a1; }
 
@@ -257,19 +270,22 @@
   </div>
 
   <div class="section" id="setup-section">
-    <label>Extension Token</label>
-    <div class="input-row">
-      <input type="text" id="token-input" placeholder="Paste token from dashboard…" />
-    </div>
-    <p class="hint">Copy from your dashboard → Extension token card</p>
+    <button id="setup-toggle">⚙ Edit token / URL</button>
+    <div class="setup-fields">
+      <label style="margin-top:10px;">Extension Token</label>
+      <div class="input-row">
+        <input type="text" id="token-input" placeholder="Paste token from dashboard…" />
+      </div>
+      <p class="hint">Copy from your dashboard → Extension token card</p>
 
-    <label style="margin-top:12px;">Dashboard URL</label>
-    <input type="url" id="url-input" placeholder="https://your-app.vercel.app" />
-    <p class="hint">Leave blank to use default</p>
+      <label style="margin-top:12px;">Dashboard URL</label>
+      <input type="url" id="url-input" placeholder="https://your-app.vercel.app" />
+      <p class="hint">Leave blank to use default</p>
 
-    <div class="actions-row">
-      <button class="btn-primary" id="save-btn">Save & Connect</button>
-      <button class="btn-danger" id="clear-btn">Clear</button>
+      <div class="actions-row">
+        <button class="btn-primary" id="save-btn">Save & Connect</button>
+        <button class="btn-danger" id="clear-btn">Clear</button>
+      </div>
     </div>
   </div>
 
