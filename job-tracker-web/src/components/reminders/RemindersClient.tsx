@@ -123,7 +123,8 @@ export function RemindersClient({ reminders: initial, applications, userEmail, e
               {emailEnabled && (
                 <div className="space-y-2">
                   <Label>Send email to</Label>
-                  <Input type="email" value={form.email_to} onChange={e => setForm(f => ({ ...f, email_to: e.target.value }))} />
+                  <Input type="email" value={form.email_to} readOnly className="bg-gray-50 text-gray-500 cursor-not-allowed" />
+                  <p className="text-xs text-gray-400">Emails are sent to your account address only</p>
                 </div>
               )}
               <div className="flex gap-2">

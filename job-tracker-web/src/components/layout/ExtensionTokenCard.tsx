@@ -30,18 +30,7 @@ export default function ExtensionTokenCard({ token: initialToken, userId }: Prop
     const supabase = createClient()
     const { data, error } = await supabase.rpc('rotate_extension_token', { user_id: userId })
     if (error || !data) {
-      // fallback: generate UUID client side and update
-      const newToken = crypto.randomUUID()
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ extension_token: newToken })
-        .eq('id', userId)
-      if (updateError) {
-        toast.error('Failed to rotate token')
-      } else {
-        setToken(newToken)
-        toast.success('Token rotated — update your extension')
-      }
+      toast.error('Failed to rotate token — please try again')
     } else {
       setToken(data)
       toast.success('Token rotated — update your extension')

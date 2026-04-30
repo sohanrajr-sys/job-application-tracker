@@ -1,15 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { createHash, timingSafeEqual } from 'crypto'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
+function verifyCronSecret(provided: string | null): boolean {
+  const expected = process.env.CRON_SECRET
+  if (!provided || !expected) return false
+  // Hash both sides to equal length before timingSafeEqual
+  const a = createHash('sha256').update(provided).digest()
+  const b = createHash('sha256').update(expected).digest()
+  return timingSafeEqual(a, b)
+}
+
 export async function POST(request: NextRequest) {
-  // Verify cron secret
-  const secret = request.headers.get('x-cron-secret')
-  if (secret !== process.env.CRON_SECRET) {
+  // Timing-safe cron secret verification
+  if (!verifyCronSecret(request.headers.get('x-cron-secret'))) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
