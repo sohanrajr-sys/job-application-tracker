@@ -8,7 +8,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Plus, Bell, BellOff, Trash2 } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { Plus, Bell, BellOff, Trash2, Mail } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { format } from 'date-fns'
 import { toast } from 'sonner'
@@ -16,9 +17,11 @@ import { toast } from 'sonner'
 interface Props {
   reminders: (Reminder & { application?: { company: string; title: string } | null })[]
   applications: { id: string; company: string; title: string }[]
+  userEmail: string
+  emailEnabled: boolean
 }
 
-export function RemindersClient({ reminders: initial, applications }: Props) {
+export function RemindersClient({ reminders: initial, applications, userEmail, emailEnabled }: Props) {
   const [reminders, setReminders] = useState(initial)
   const [showForm, setShowForm] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -27,6 +30,7 @@ export function RemindersClient({ reminders: initial, applications }: Props) {
     message: '',
     remind_at: '',
     application_id: 'none',
+    email_to: userEmail,
   })
 
   async function addReminder(e: React.FormEvent) {
@@ -36,14 +40,15 @@ export function RemindersClient({ reminders: initial, applications }: Props) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { toast.error('Not logged in'); setLoading(false); return }
 
+    const payload = {
+      ...form,
+      application_id: form.application_id === 'none' ? null : form.application_id,
+      user_id: user.id,
+    }
+
     const { data, error } = await supabase
       .from('reminders')
-      .insert({
-        ...form,
-        application_id: form.application_id === 'none' ? null : form.application_id,
-        user_id: user.id,
-        email_to: '',
-      })
+      .insert(payload)
       .select('*, application:applications(company, title)')
       .single()
 
@@ -52,7 +57,7 @@ export function RemindersClient({ reminders: initial, applications }: Props) {
     } else {
       setReminders(prev => [...prev, data as Reminder])
       setShowForm(false)
-      setForm({ title: '', message: '', remind_at: '', application_id: 'none' })
+      setForm({ title: '', message: '', remind_at: '', application_id: 'none', email_to: userEmail })
       toast.success('Reminder set')
     }
     setLoading(false)
@@ -71,6 +76,13 @@ export function RemindersClient({ reminders: initial, applications }: Props) {
 
   return (
     <div className="space-y-6">
+      {!emailEnabled && (
+        <div className="flex items-center gap-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800">
+          <Mail className="w-4 h-4 flex-shrink-0" />
+          Email delivery disabled. Add RESEND_API_KEY to .env to enable email reminders.
+        </div>
+      )}
+
       <div className="flex justify-between items-center">
         <h2 className="font-semibold text-gray-700">Upcoming ({upcoming.length})</h2>
         <Button size="sm" className="gap-2" onClick={() => setShowForm(!showForm)}>
@@ -108,6 +120,13 @@ export function RemindersClient({ reminders: initial, applications }: Props) {
                 <Label>Note (optional)</Label>
                 <Textarea value={form.message} onChange={e => setForm(f => ({ ...f, message: e.target.value }))} rows={2} />
               </div>
+              {emailEnabled && (
+                <div className="space-y-2">
+                  <Label>Send email to</Label>
+                  <Input type="email" value={form.email_to} readOnly className="bg-gray-50 text-gray-500 cursor-not-allowed" />
+                  <p className="text-xs text-gray-400">Emails are sent to your account address only</p>
+                </div>
+              )}
               <div className="flex gap-2">
                 <Button type="submit" disabled={loading}>{loading ? 'Saving...' : 'Save reminder'}</Button>
                 <Button type="button" variant="ghost" onClick={() => setShowForm(false)}>Cancel</Button>
