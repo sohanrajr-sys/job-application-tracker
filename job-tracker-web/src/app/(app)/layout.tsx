@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { Sidebar } from '@/components/layout/Sidebar'
+import { MobileBottomNav } from '@/components/layout/MobileBottomNav'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -14,15 +15,17 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     .eq('id', user.id)
     .single()
 
-  // First-time users go through extension setup before anything else
   if (!profile?.onboarding_done) redirect('/setup')
 
+  const isAdmin = profile?.role === 'admin'
+
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      <Sidebar isAdmin={profile?.role === 'admin'} />
-      <main className="flex-1 overflow-auto">
+    <div className="flex min-h-screen bg-[#18181b]">
+      <Sidebar isAdmin={isAdmin} />
+      <main className="flex-1 overflow-auto pb-14 md:pb-0">
         {children}
       </main>
+      <MobileBottomNav isAdmin={isAdmin} />
     </div>
   )
 }

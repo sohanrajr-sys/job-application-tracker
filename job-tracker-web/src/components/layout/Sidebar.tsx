@@ -42,9 +42,9 @@ export function Sidebar({ isAdmin }: SidebarProps) {
   }
 
   return (
-    <aside className="w-64 min-h-screen bg-white border-r flex flex-col">
-      <div className="p-6 border-b">
-        <h1 className="text-xl font-bold text-gray-900">Job Tracker</h1>
+    <aside className="hidden md:flex w-64 min-h-screen bg-[#18181b] border-r border-[#3f3f46] flex-col">
+      <div className="p-6 border-b border-[#3f3f46]">
+        <h1 className="text-xl font-bold text-zinc-50">Job Tracker</h1>
       </div>
       <nav className="flex-1 p-4 space-y-1">
         {navItems.map(({ href, label, icon: Icon }) => (
@@ -52,10 +52,10 @@ export function Sidebar({ isAdmin }: SidebarProps) {
             key={href}
             href={href}
             className={cn(
-              'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+              'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-150',
               pathname === href || pathname.startsWith(href + '/')
-                ? 'bg-blue-50 text-blue-700'
-                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                ? 'bg-violet-900/40 text-violet-400 border-r-2 border-violet-500'
+                : 'text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100'
             )}
           >
             <Icon className="w-4 h-4" />
@@ -63,8 +63,8 @@ export function Sidebar({ isAdmin }: SidebarProps) {
           </Link>
         ))}
         {isAdmin && (
-          <div className="pt-2">
-            <p className="px-3 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Admin</p>
+          <div className="pt-4">
+            <p className="px-3 py-1 text-xs font-semibold text-zinc-600 uppercase tracking-wider">Admin</p>
             {[
               { href: '/admin', label: 'Overview', icon: Shield, exact: true },
               { href: '/admin/users', label: 'Users', icon: Users, exact: false },
@@ -74,10 +74,10 @@ export function Sidebar({ isAdmin }: SidebarProps) {
                 key={href}
                 href={href}
                 className={cn(
-                  'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+                  'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-150',
                   (exact ? pathname === href : pathname.startsWith(href))
-                    ? 'bg-purple-50 text-purple-700'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    ? 'bg-violet-900/40 text-violet-400 border-r-2 border-violet-500'
+                    : 'text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100'
                 )}
               >
                 <Icon className="w-4 h-4" />
@@ -87,20 +87,24 @@ export function Sidebar({ isAdmin }: SidebarProps) {
           </div>
         )}
       </nav>
-      <div className="p-4 border-t space-y-1">
+      <div className="p-4 border-t border-[#3f3f46] space-y-1">
         <Link
           href="/setup"
           className={cn(
-            'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors w-full',
+            'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-150 w-full',
             pathname === '/setup'
-              ? 'bg-blue-50 text-blue-700'
-              : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+              ? 'bg-violet-900/40 text-violet-400'
+              : 'text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100'
           )}
         >
           <PuzzleIcon className="w-4 h-4" />
           Get Extension
         </Link>
-        <Button variant="ghost" className="w-full justify-start gap-3 text-gray-600" onClick={handleLogout}>
+        <Button
+          variant="ghost"
+          className="w-full justify-start gap-3 text-zinc-400 hover:bg-zinc-800 hover:text-red-400"
+          onClick={handleLogout}
+        >
           <LogOut className="w-4 h-4" />
           Sign out
         </Button>

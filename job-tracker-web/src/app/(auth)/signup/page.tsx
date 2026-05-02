@@ -36,7 +36,7 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-[#18181b] px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl">Create account</CardTitle>
@@ -79,9 +79,9 @@ export default function SignupPage() {
               {loading ? 'Creating account...' : 'Create account'}
             </Button>
           </form>
-          <p className="mt-4 text-center text-sm text-gray-600">
+          <p className="mt-4 text-center text-sm text-zinc-400">
             Already have an account?{' '}
-            <Link href="/login" className="font-medium text-blue-600 hover:underline">
+            <Link href="/login" className="font-medium text-violet-400 hover:underline">
               Sign in
             </Link>
           </p>

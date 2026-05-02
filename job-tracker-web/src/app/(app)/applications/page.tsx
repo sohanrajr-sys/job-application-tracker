@@ -14,10 +14,10 @@ export default async function ApplicationsPage() {
     .order('applied_at', { ascending: false })
 
   return (
-    <div className="p-8 space-y-6">
+    <div className="p-4 md:p-8 space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Applications</h1>
-        <p className="text-gray-500 mt-1">{applications?.length ?? 0} total</p>
+        <h1 className="text-2xl font-bold text-zinc-50">Applications</h1>
+        <p className="text-zinc-400 mt-1">{applications?.length ?? 0} total</p>
       </div>
       <ApplicationsTable applications={applications ?? []} />
     </div>

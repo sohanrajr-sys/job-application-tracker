@@ -20,10 +20,10 @@ export default async function RemindersPage() {
   const emailEnabled = !!process.env.NEXT_PUBLIC_EMAIL_ENABLED
 
   return (
-    <div className="p-8 space-y-6">
+    <div className="p-4 md:p-8 space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Reminders</h1>
-        <p className="text-gray-500 mt-1">
+        <h1 className="text-2xl font-bold text-zinc-50">Reminders</h1>
+        <p className="text-zinc-400 mt-1">
           {emailEnabled
             ? 'Email reminders are active'
             : 'Reminders saved — email delivery not configured'}

@@ -64,7 +64,7 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-[#18181b] px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl">Job Tracker</CardTitle>
@@ -74,9 +74,9 @@ export default function LoginPage() {
           <Suspense fallback={<div className="h-40 flex items-center justify-center text-sm text-gray-400">Loading…</div>}>
             <LoginForm />
           </Suspense>
-          <p className="mt-4 text-center text-sm text-gray-600">
+          <p className="mt-4 text-center text-sm text-zinc-400">
             No account?{' '}
-            <Link href="/signup" className="font-medium text-blue-600 hover:underline">
+            <Link href="/signup" className="font-medium text-violet-400 hover:underline">
               Sign up
             </Link>
           </p>

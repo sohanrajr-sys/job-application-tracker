@@ -8,7 +8,6 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Badge } from '@/components/ui/badge'
 import { Plus, Bell, BellOff, Trash2, Mail } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { format } from 'date-fns'
@@ -77,37 +76,51 @@ export function RemindersClient({ reminders: initial, applications, userEmail, e
   return (
     <div className="space-y-6">
       {!emailEnabled && (
-        <div className="flex items-center gap-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800">
+        <div className="flex items-center gap-2 p-3 bg-amber-950/40 border border-amber-800 rounded-lg text-sm text-amber-300">
           <Mail className="w-4 h-4 flex-shrink-0" />
-          Email delivery disabled. Add RESEND_API_KEY to .env to enable email reminders.
+          Email delivery disabled. Add RESEND_API_KEY to enable email reminders.
         </div>
       )}
 
       <div className="flex justify-between items-center">
-        <h2 className="font-semibold text-gray-700">Upcoming ({upcoming.length})</h2>
+        <h2 className="font-semibold text-zinc-300">Upcoming ({upcoming.length})</h2>
         <Button size="sm" className="gap-2" onClick={() => setShowForm(!showForm)}>
           <Plus className="w-4 h-4" /> New reminder
         </Button>
       </div>
 
       {showForm && (
-        <Card>
+        <Card className="bg-[#27272a] border-[#3f3f46]">
           <CardContent className="pt-6">
             <form onSubmit={addReminder} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Title</Label>
-                  <Input required value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="Follow up on application" />
+                  <Label className="text-zinc-300">Title</Label>
+                  <Input
+                    required
+                    value={form.title}
+                    onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
+                    placeholder="Follow up on application"
+                    className="bg-[#18181b] border-[#3f3f46] text-zinc-100 placeholder:text-zinc-600"
+                  />
                 </div>
                 <div className="space-y-2">
-                  <Label>Date & time</Label>
-                  <Input required type="datetime-local" value={form.remind_at} onChange={e => setForm(f => ({ ...f, remind_at: e.target.value }))} />
+                  <Label className="text-zinc-300">Date & time</Label>
+                  <Input
+                    required
+                    type="datetime-local"
+                    value={form.remind_at}
+                    onChange={e => setForm(f => ({ ...f, remind_at: e.target.value }))}
+                    className="bg-[#18181b] border-[#3f3f46] text-zinc-100"
+                  />
                 </div>
               </div>
               <div className="space-y-2">
-                <Label>Linked application (optional)</Label>
+                <Label className="text-zinc-300">Linked application (optional)</Label>
                 <Select value={form.application_id} onValueChange={v => setForm(f => ({ ...f, application_id: v ?? 'none' }))}>
-                  <SelectTrigger><SelectValue placeholder="None" /></SelectTrigger>
+                  <SelectTrigger className="bg-[#18181b] border-[#3f3f46] text-zinc-100">
+                    <SelectValue placeholder="None" />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">None</SelectItem>
                     {applications.map(a => (
@@ -117,14 +130,24 @@ export function RemindersClient({ reminders: initial, applications, userEmail, e
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Note (optional)</Label>
-                <Textarea value={form.message} onChange={e => setForm(f => ({ ...f, message: e.target.value }))} rows={2} />
+                <Label className="text-zinc-300">Note (optional)</Label>
+                <Textarea
+                  value={form.message}
+                  onChange={e => setForm(f => ({ ...f, message: e.target.value }))}
+                  rows={2}
+                  className="bg-[#18181b] border-[#3f3f46] text-zinc-100 placeholder:text-zinc-600"
+                />
               </div>
               {emailEnabled && (
                 <div className="space-y-2">
-                  <Label>Send email to</Label>
-                  <Input type="email" value={form.email_to} readOnly className="bg-gray-50 text-gray-500 cursor-not-allowed" />
-                  <p className="text-xs text-gray-400">Emails are sent to your account address only</p>
+                  <Label className="text-zinc-300">Send email to</Label>
+                  <Input
+                    type="email"
+                    value={form.email_to}
+                    readOnly
+                    className="bg-[#18181b] border-[#3f3f46] text-zinc-500 cursor-not-allowed"
+                  />
+                  <p className="text-xs text-zinc-600">Emails are sent to your account address only</p>
                 </div>
               )}
               <div className="flex gap-2">
@@ -137,23 +160,23 @@ export function RemindersClient({ reminders: initial, applications, userEmail, e
       )}
 
       <div className="space-y-2">
-        {upcoming.length === 0 && <p className="text-sm text-gray-400">No upcoming reminders</p>}
+        {upcoming.length === 0 && <p className="text-sm text-zinc-500">No upcoming reminders</p>}
         {upcoming.map(r => (
-          <Card key={r.id}>
+          <Card key={r.id} className="bg-[#27272a] border-[#3f3f46] transition-all duration-150 hover:-translate-y-px hover:shadow-md hover:shadow-black/40">
             <CardContent className="py-4 flex items-start justify-between">
               <div className="flex gap-3">
-                <Bell className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                <Bell className="w-4 h-4 text-violet-400 mt-0.5 flex-shrink-0" />
                 <div>
-                  <p className="font-medium text-sm">{r.title}</p>
+                  <p className="font-medium text-sm text-zinc-100">{r.title}</p>
                   {r.application && (
-                    <p className="text-xs text-gray-500">{r.application.company} — {r.application.title}</p>
+                    <p className="text-xs text-zinc-500">{r.application.company} — {r.application.title}</p>
                   )}
-                  <p className="text-xs text-gray-400 mt-1">{format(new Date(r.remind_at), 'MMM d, yyyy h:mm a')}</p>
-                  {r.message && <p className="text-xs text-gray-600 mt-1">{r.message}</p>}
+                  <p className="text-xs text-zinc-500 mt-1">{format(new Date(r.remind_at), 'MMM d, yyyy h:mm a')}</p>
+                  {r.message && <p className="text-xs text-zinc-400 mt-1">{r.message}</p>}
                 </div>
               </div>
-              <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => deleteReminder(r.id)}>
-                <Trash2 className="w-3.5 h-3.5 text-gray-400" />
+              <Button size="icon" variant="ghost" className="h-7 w-7 hover:bg-zinc-700" onClick={() => deleteReminder(r.id)}>
+                <Trash2 className="w-3.5 h-3.5 text-zinc-500" />
               </Button>
             </CardContent>
           </Card>
@@ -162,15 +185,15 @@ export function RemindersClient({ reminders: initial, applications, userEmail, e
 
       {past.length > 0 && (
         <>
-          <h2 className="font-semibold text-gray-500 text-sm">Past ({past.length})</h2>
+          <h2 className="font-semibold text-zinc-600 text-sm">Past ({past.length})</h2>
           <div className="space-y-2 opacity-60">
             {past.map(r => (
-              <Card key={r.id}>
+              <Card key={r.id} className="bg-[#27272a] border-[#3f3f46]">
                 <CardContent className="py-3 flex items-start gap-3">
-                  <BellOff className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
+                  <BellOff className="w-4 h-4 text-zinc-600 mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="text-sm text-gray-600">{r.title}</p>
-                    <p className="text-xs text-gray-400">{format(new Date(r.remind_at), 'MMM d, yyyy h:mm a')}</p>
+                    <p className="text-sm text-zinc-400">{r.title}</p>
+                    <p className="text-xs text-zinc-600">{format(new Date(r.remind_at), 'MMM d, yyyy h:mm a')}</p>
                   </div>
                 </CardContent>
               </Card>
