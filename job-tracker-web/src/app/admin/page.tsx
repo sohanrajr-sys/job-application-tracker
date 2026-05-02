@@ -38,7 +38,6 @@ export default async function AdminDashboard() {
   const apps = allApps ?? []
   const profiles = allProfiles ?? []
 
-  // Apps over time (last 30 days)
   const appDailyCounts: Record<string, number> = {}
   for (let i = 29; i >= 0; i--) {
     appDailyCounts[format(subDays(new Date(), i), 'yyyy-MM-dd')] = 0
@@ -49,7 +48,6 @@ export default async function AdminDashboard() {
   })
   const appsOverTime = Object.entries(appDailyCounts).map(([date, count]) => ({ date, count }))
 
-  // New users over time (last 30 days)
   const userDailyCounts: Record<string, number> = {}
   for (let i = 29; i >= 0; i--) {
     userDailyCounts[format(subDays(new Date(), i), 'yyyy-MM-dd')] = 0
@@ -60,17 +58,14 @@ export default async function AdminDashboard() {
   })
   const usersOverTime = Object.entries(userDailyCounts).map(([date, count]) => ({ date, count }))
 
-  // Platform breakdown (all users)
   const platformCounts: Record<string, number> = {}
   apps.forEach(a => { platformCounts[a.platform] = (platformCounts[a.platform] ?? 0) + 1 })
   const platformData = Object.entries(platformCounts).map(([platform, count]) => ({ platform, count }))
 
-  // Status breakdown (all users)
   const statusCounts: Record<string, number> = {}
   apps.forEach(a => { statusCounts[a.status] = (statusCounts[a.status] ?? 0) + 1 })
   const statusData = Object.entries(statusCounts).map(([status, count]) => ({ status, count }))
 
-  // Top 10 users by app count
   const userAppCount: Record<string, number> = {}
   apps.forEach(a => { userAppCount[a.user_id] = (userAppCount[a.user_id] ?? 0) + 1 })
   const profileMap = Object.fromEntries(profiles.map(p => [p.id, p]))
@@ -80,28 +75,27 @@ export default async function AdminDashboard() {
     .map(([id, count]) => ({ ...profileMap[id], appCount: count }))
 
   const stats = [
-    { label: 'Total users', value: totalUsers ?? 0, icon: Users, color: 'text-blue-500' },
-    { label: 'Total applications', value: totalApps ?? 0, icon: Briefcase, color: 'text-green-500' },
-    { label: 'Applications today', value: todayApps ?? 0, icon: TrendingUp, color: 'text-purple-500' },
-    { label: 'Pending reminders', value: pendingReminders ?? 0, icon: Bell, color: 'text-yellow-500' },
+    { label: 'Total users', value: totalUsers ?? 0, icon: Users, color: 'text-violet-400' },
+    { label: 'Total applications', value: totalApps ?? 0, icon: Briefcase, color: 'text-emerald-400' },
+    { label: 'Applications today', value: todayApps ?? 0, icon: TrendingUp, color: 'text-amber-400' },
+    { label: 'Pending reminders', value: pendingReminders ?? 0, icon: Bell, color: 'text-yellow-400' },
   ]
 
   return (
-    <div className="p-8 space-y-8">
+    <div className="p-4 md:p-8 space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Admin</h1>
-        <p className="text-gray-500 mt-1">Platform-wide overview</p>
+        <h1 className="text-2xl font-bold text-zinc-50">Admin</h1>
+        <p className="text-zinc-400 mt-1">Platform-wide overview</p>
       </div>
 
-      {/* Stat cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map(({ label, value, icon: Icon, color }) => (
-          <Card key={label}>
+          <Card key={label} className="bg-[#27272a] border-[#3f3f46] transition-all duration-150 hover:-translate-y-px hover:shadow-lg hover:shadow-black/40">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-500">{label}</p>
-                  <p className="text-3xl font-bold">{value}</p>
+                  <p className="text-sm text-zinc-400">{label}</p>
+                  <p className="text-3xl font-bold text-zinc-50">{value}</p>
                 </div>
                 <Icon className={`w-8 h-8 opacity-80 ${color}`} />
               </div>
@@ -110,19 +104,18 @@ export default async function AdminDashboard() {
         ))}
       </div>
 
-      {/* Charts row 1 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
+        <Card className="bg-[#27272a] border-[#3f3f46]">
           <CardHeader>
-            <CardTitle className="text-base">Applications per day (all users, 30d)</CardTitle>
+            <CardTitle className="text-base text-zinc-100">Applications per day (all users, 30d)</CardTitle>
           </CardHeader>
           <CardContent>
             <ApplicationsOverTime data={appsOverTime} />
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-[#27272a] border-[#3f3f46]">
           <CardHeader>
-            <CardTitle className="text-base">New user signups (30d)</CardTitle>
+            <CardTitle className="text-base text-zinc-100">New user signups (30d)</CardTitle>
           </CardHeader>
           <CardContent>
             <ApplicationsOverTime data={usersOverTime} />
@@ -130,55 +123,53 @@ export default async function AdminDashboard() {
         </Card>
       </div>
 
-      {/* Charts row 2 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
+        <Card className="bg-[#27272a] border-[#3f3f46]">
           <CardHeader>
-            <CardTitle className="text-base">Platform breakdown (all users)</CardTitle>
+            <CardTitle className="text-base text-zinc-100">Platform breakdown (all users)</CardTitle>
           </CardHeader>
           <CardContent>
             {platformData.length > 0
               ? <PlatformBreakdown data={platformData} />
-              : <p className="text-sm text-gray-400 py-16 text-center">No data yet</p>
+              : <p className="text-sm text-zinc-500 py-16 text-center">No data yet</p>
             }
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-[#27272a] border-[#3f3f46]">
           <CardHeader>
-            <CardTitle className="text-base">Status breakdown (all users)</CardTitle>
+            <CardTitle className="text-base text-zinc-100">Status breakdown (all users)</CardTitle>
           </CardHeader>
           <CardContent>
             {statusData.length > 0
               ? <StatusFunnel data={statusData} />
-              : <p className="text-sm text-gray-400 py-16 text-center">No data yet</p>
+              : <p className="text-sm text-zinc-500 py-16 text-center">No data yet</p>
             }
           </CardContent>
         </Card>
       </div>
 
-      {/* Top users table */}
-      <Card>
+      <Card className="bg-[#27272a] border-[#3f3f46]">
         <CardHeader>
-          <CardTitle className="text-base">Top users by applications</CardTitle>
+          <CardTitle className="text-base text-zinc-100">Top users by applications</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
-          <div className="border-t overflow-hidden rounded-b-lg">
+          <div className="border-t border-[#3f3f46] overflow-hidden rounded-b-lg">
             <Table>
               <TableHeader>
-                <TableRow className="bg-gray-50">
-                  <TableHead>User</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Applications</TableHead>
-                  <TableHead>Joined</TableHead>
+                <TableRow className="bg-[#18181b] hover:bg-[#18181b] border-b border-[#3f3f46]">
+                  <TableHead className="text-zinc-400">User</TableHead>
+                  <TableHead className="text-zinc-400">Role</TableHead>
+                  <TableHead className="text-zinc-400">Applications</TableHead>
+                  <TableHead className="text-zinc-400">Joined</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {topUsers.map((u, i) => (
-                  <TableRow key={u.id ?? i}>
+                  <TableRow key={u.id ?? i} className="border-b border-[#3f3f46] hover:bg-zinc-700/20 transition-colors">
                     <TableCell>
                       <div>
-                        <p className="text-sm font-medium">{u.full_name ?? '—'}</p>
-                        <p className="text-xs text-gray-400 font-mono">{u.email}</p>
+                        <p className="text-sm font-medium text-zinc-100">{u.full_name ?? '—'}</p>
+                        <p className="text-xs text-zinc-500 font-mono">{u.email}</p>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -186,15 +177,15 @@ export default async function AdminDashboard() {
                         {u.role ?? 'user'}
                       </Badge>
                     </TableCell>
-                    <TableCell className="font-semibold">{u.appCount}</TableCell>
-                    <TableCell className="text-sm text-gray-500">
+                    <TableCell className="font-semibold text-zinc-100">{u.appCount}</TableCell>
+                    <TableCell className="text-sm text-zinc-500">
                       {u.created_at ? format(new Date(u.created_at), 'MMM d, yyyy') : '—'}
                     </TableCell>
                   </TableRow>
                 ))}
                 {topUsers.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center text-gray-400 py-8">
+                    <TableCell colSpan={4} className="text-center text-zinc-500 py-8">
                       No applications yet
                     </TableCell>
                   </TableRow>
@@ -206,8 +197,8 @@ export default async function AdminDashboard() {
       </Card>
 
       <div className="flex gap-4">
-        <a href="/admin/users" className="text-sm text-blue-600 hover:underline">View all users →</a>
-        <a href="/admin/activity" className="text-sm text-blue-600 hover:underline">View activity log →</a>
+        <a href="/admin/users" className="text-sm text-violet-400 hover:underline">View all users →</a>
+        <a href="/admin/activity" className="text-sm text-violet-400 hover:underline">View activity log →</a>
       </div>
     </div>
   )

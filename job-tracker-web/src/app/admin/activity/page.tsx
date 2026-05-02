@@ -1,7 +1,13 @@
 import { createAdminClient } from '@/lib/supabase/server'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Badge } from '@/components/ui/badge'
 import { format } from 'date-fns'
+
+const EVENT_COLORS: Record<string, string> = {
+  created: 'bg-emerald-950 text-emerald-300',
+  status_changed: 'bg-violet-950 text-violet-300',
+  bookmarked: 'bg-amber-950 text-amber-300',
+  note_added: 'bg-zinc-700 text-zinc-300',
+}
 
 export default async function AdminActivityPage() {
   const supabase = await createAdminClient()
@@ -16,50 +22,43 @@ export default async function AdminActivityPage() {
     .order('created_at', { ascending: false })
     .limit(200)
 
-  const EVENT_COLORS: Record<string, string> = {
-    created: 'bg-green-100 text-green-700',
-    status_changed: 'bg-blue-100 text-blue-700',
-    bookmarked: 'bg-yellow-100 text-yellow-700',
-    note_added: 'bg-gray-100 text-gray-700',
-  }
-
   return (
-    <div className="p-8 space-y-6">
+    <div className="p-4 md:p-8 space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Activity log</h1>
-        <p className="text-gray-500 mt-1">Last 200 events</p>
+        <h1 className="text-2xl font-bold text-zinc-50">Activity log</h1>
+        <p className="text-zinc-400 mt-1">Last 200 events</p>
       </div>
-      <div className="border rounded-lg overflow-hidden bg-white">
+      <div className="border border-[#3f3f46] rounded-lg overflow-hidden bg-[#27272a]">
         <Table>
           <TableHeader>
-            <TableRow className="bg-gray-50">
-              <TableHead>User</TableHead>
-              <TableHead>Application</TableHead>
-              <TableHead>Event</TableHead>
-              <TableHead>Change</TableHead>
-              <TableHead>When</TableHead>
+            <TableRow className="bg-[#18181b] hover:bg-[#18181b] border-b border-[#3f3f46]">
+              <TableHead className="text-zinc-400">User</TableHead>
+              <TableHead className="text-zinc-400">Application</TableHead>
+              <TableHead className="text-zinc-400">Event</TableHead>
+              <TableHead className="text-zinc-400">Change</TableHead>
+              <TableHead className="text-zinc-400">When</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {(events ?? []).map(e => (
-              <TableRow key={e.id}>
-                <TableCell className="text-xs font-mono text-gray-500">
+              <TableRow key={e.id} className="border-b border-[#3f3f46] hover:bg-zinc-700/20 transition-colors">
+                <TableCell className="text-xs font-mono text-zinc-500">
                   {(e as any).profile?.email ?? '—'}
                 </TableCell>
-                <TableCell className="text-sm">
+                <TableCell className="text-sm text-zinc-300">
                   {(e as any).application
                     ? `${(e as any).application.company} — ${(e as any).application.title}`
                     : '—'}
                 </TableCell>
                 <TableCell>
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${EVENT_COLORS[e.event_type] ?? ''}`}>
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${EVENT_COLORS[e.event_type] ?? 'bg-zinc-700 text-zinc-300'}`}>
                     {e.event_type}
                   </span>
                 </TableCell>
-                <TableCell className="text-xs text-gray-500">
+                <TableCell className="text-xs text-zinc-500">
                   {e.old_value && e.new_value ? `${e.old_value} → ${e.new_value}` : e.new_value ?? '—'}
                 </TableCell>
-                <TableCell className="text-xs text-gray-400">
+                <TableCell className="text-xs text-zinc-500">
                   {format(new Date(e.created_at), 'MMM d, HH:mm')}
                 </TableCell>
               </TableRow>
