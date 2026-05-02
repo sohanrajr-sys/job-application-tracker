@@ -56,19 +56,22 @@ export default function SetupPage() {
     }
   }, [])
 
-  async function completeOnboarding() {
-    setCompleting(true)
+  async function finishOnboarding(setter: (v: boolean) => void) {
+    setter(true)
     const supabase = createClient()
-    await supabase.rpc('complete_onboarding')
+    const { error } = await supabase.rpc('complete_onboarding')
+    if (error) {
+      // RPC missing (migration not run) — fall back to direct update
+      await supabase.from('profiles').update({ onboarding_done: true })
+        .eq('id', (await supabase.auth.getUser()).data.user?.id ?? '')
+    }
+    // Refresh server component cache so layout re-reads onboarding_done = true
+    router.refresh()
     router.push('/dashboard')
   }
 
-  async function skipOnboarding() {
-    setSkipping(true)
-    const supabase = createClient()
-    await supabase.rpc('complete_onboarding')
-    router.push('/dashboard')
-  }
+  const completeOnboarding = () => finishOnboarding(setCompleting)
+  const skipOnboarding = () => finishOnboarding(setSkipping)
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center py-16 px-4">
@@ -121,7 +124,6 @@ export default function SetupPage() {
           </div>
           <div className="divide-y divide-gray-100">
             {STEPS.map((step, i) => {
-              const Icon = step.icon
               return (
                 <div key={i} className="flex gap-4 px-6 py-4">
                   <div className="flex-shrink-0 w-7 h-7 rounded-full bg-blue-50 text-blue-600 text-xs font-bold flex items-center justify-center">
