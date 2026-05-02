@@ -13,6 +13,7 @@ import {
   Shield,
   Users,
   Activity,
+  PuzzleIcon,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
@@ -86,7 +87,19 @@ export function Sidebar({ isAdmin }: SidebarProps) {
           </div>
         )}
       </nav>
-      <div className="p-4 border-t">
+      <div className="p-4 border-t space-y-1">
+        <Link
+          href="/setup"
+          className={cn(
+            'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors w-full',
+            pathname === '/setup'
+              ? 'bg-blue-50 text-blue-700'
+              : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+          )}
+        >
+          <PuzzleIcon className="w-4 h-4" />
+          Get Extension
+        </Link>
         <Button variant="ghost" className="w-full justify-start gap-3 text-gray-600" onClick={handleLogout}>
           <LogOut className="w-4 h-4" />
           Sign out
